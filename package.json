@@ -1,0 +1,17 @@
+{
+  "name": "florida-property-tax-estimator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Florida Property Tax Estimator (Polk County) — search by address, recalculate ad valorem taxes for a new buyer, derive actual non-ad valorem charges, and apply exemptions. No paid APIs.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  }
+}
