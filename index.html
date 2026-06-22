@@ -12,7 +12,7 @@
   .wrap{max-width:860px;margin:0 auto;padding:28px 18px 80px}
   header.hero{color:#ecfdf5;padding:8px 4px 22px}
   header.hero h1{font-size:26px;margin:0 0 6px;letter-spacing:-.02em}
-  header.hero p{margin:0;color:#d1fae5;font-size:14px;max-width:620px}
+  header.hero p{margin:0;color:#d1fae5;font-size:14px;max-width:640px}
   .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 8px 30px rgba(2,6,23,.08);margin-bottom:18px}
   .row{display:flex;gap:10px;flex-wrap:wrap}
   label{font-size:13px;font-weight:600;display:block;margin:0 0 6px}
@@ -31,8 +31,11 @@
   .results-list li:hover{border-color:var(--brand);background:#f0fdf4}
   .results-list .addr{font-weight:600}
   .results-list .sub{font-size:12px;color:var(--muted)}
-  .kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:14px}
-  .kv:last-child{border-bottom:0}.kv .k{color:var(--muted)}.kv .v{font-weight:600;font-variant-numeric:tabular-nums}
+  .kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:14px;gap:12px}
+  .kv:last-child{border-bottom:0}.kv .k{color:var(--muted)}.kv .v{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+  .navlist{margin:6px 0 0;padding:0;list-style:none}
+  .navlist li{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);padding:3px 0}
+  .navlist li .a{padding-right:12px}
   .exemptions{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px}
   @media(max-width:560px){.exemptions{grid-template-columns:1fr}}
   .exemptions label.chk{display:flex;align-items:flex-start;gap:9px;font-weight:500;font-size:14px;background:#f8fafc;border:1px solid var(--line);border-radius:9px;padding:10px 12px;cursor:pointer}
@@ -50,10 +53,14 @@
   .compare .box .amt{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
   .delta{font-size:13px;font-weight:600;margin-top:4px}.delta.up{color:var(--warn)}.delta.down{color:var(--good)}
   .tag{display:inline-block;background:#eef2ff;color:var(--accent);border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600;margin:2px 6px 2px 0}
+  .src{font-size:12px;font-weight:600;border-radius:6px;padding:2px 8px;display:inline-block}
+  .src.ok{background:#ecfdf5;color:var(--good)}
+  .src.loading{background:#fef9c3;color:#854d0e}
+  .src.err{background:#fef2f2;color:#b91c1c}
   .notes{margin-top:14px;font-size:13px;color:var(--muted)}.notes li{margin-bottom:5px}
   .disclaimer{font-size:12px;color:var(--muted);margin-top:22px;line-height:1.5}
   .error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;padding:10px 12px;border-radius:9px;font-size:14px;margin-top:10px}
-  .section-title{font-size:15px;font-weight:700;margin:0 0 12px}
+  .section-title{font-size:15px;font-weight:700;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
   a{color:var(--accent)} .hidden{display:none}
 </style>
 </head>
@@ -62,8 +69,8 @@
   <header class="hero">
     <h1>Florida Property Tax Estimator</h1>
     <p>Search a property, enter what you'd pay for it, and see the estimated taxes for you as the new
-       owner — ad valorem recalculated after the sale, plus the actual non-ad valorem charges pulled
-       from county records.</p>
+       owner. Ad valorem is recalculated after the sale; non-ad valorem is pulled itemized from the
+       actual Polk County Tax Collector bill.</p>
   </header>
 
   <div class="county-tabs">
@@ -75,7 +82,7 @@
   <div class="card">
     <label for="q">Search by property address <span class="hint">(Polk County)</span></label>
     <div class="row">
-      <input id="q" type="text" placeholder="e.g. 13411 Old Dade City Rd, Kathleen" style="flex:3 1 320px" />
+      <input id="q" type="text" placeholder="e.g. 437 Seattle Slew Dr, Davenport" style="flex:3 1 320px" />
       <button id="searchBtn" style="flex:0 0 auto">Search</button>
     </div>
     <div id="searchMsg"></div>
@@ -85,21 +92,20 @@
   <div id="detail" class="hidden"></div>
 
   <p class="disclaimer">
-    <strong>Estimate only.</strong> This tool recalculates ad valorem tax by removing the Save Our Homes
-    cap (assessed value resets to market value when a property changes hands) and applying the parcel's
-    actual current millage. Non-ad valorem assessments are derived from the property's current official
-    tax amount and assumed unchanged for the new owner; early-payment discounts can affect that figure
-    slightly. Exemption amounts reflect Florida law as of 2025 and assume you qualify — the County
-    Property Appraiser determines actual eligibility, just value, and final millage. The
-    school-vs-non-school millage split uses Polk's countywide school millage (5.29). Verify any number
-    against the official county Property Appraiser and Tax Collector before relying on it.
-    Data: Polk County Property Appraiser public GIS (free, no API key).
+    <strong>How the numbers are sourced.</strong> Property location, market (just) value and parcel
+    info come from the Polk County Property Appraiser GIS. The current tax breakdown — itemized
+    non-ad valorem assessments (CDD, fire, solid waste, stormwater), the millage split, exemptions and
+    the total bill — is read live from the official Polk County Tax Collector bill
+    (polk.floridatax.us). Ad valorem for a new owner is recalculated by removing the Save Our Homes cap
+    (assessed value resets to market on sale) and applying the parcel's actual millage to your purchase
+    price. Non-ad valorem assessments are carried forward as-is (most, like a CDD bond, continue for a
+    new owner). This is an estimate; the Property Appraiser and Tax Collector set the official figures.
   </p>
 </div>
 
 <script>
-var ENDPOINT = "https://gis.polk-county.net/server/rest/services/Map_Property_Appraiser/FeatureServer/1/query";
-var SCHOOL_MILLS = 5.29;
+var GIS = "https://gis.polk-county.net/server/rest/services/Map_Property_Appraiser/FeatureServer/1/query";
+var BILL_YEARS = [2025, 2024];
 var OUTFIELDS = ["PARCELID","NAME","PROP_ADRNO","PROP_ADRDIR","PROP_ADRSTR","PROP_ADRSUF","PROP_UNITNO",
   "PROP_CITY","PROP_ZIP","TOTALVAL","ASSESSVAL","TAXVAL","MILLRATE","AMTDUE","HMSTD","EXDESC","TAXDIST",
   "DOR_USE_CODE_DESC"];
@@ -107,8 +113,12 @@ var OUTFIELDS = ["PARCELID","NAME","PROP_ADRNO","PROP_ADRDIR","PROP_ADRSTR","PRO
 function fmt(n){return "$"+(Number(n)||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
 function fmt0(n){return "$"+Math.round(Number(n)||0).toLocaleString("en-US");}
 function num(v){var n=Number(v);return isFinite(n)?n:0;}
+function money(s){var n=parseFloat(String(s).replace(/[^0-9.]/g,""));return isFinite(n)?n:NaN;}
 function r2(n){return Math.round(n*100)/100;}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function dashParcel(p){p=String(p).replace(/[^0-9A-Za-z]/g,"");if(p.length===18)return p.slice(0,6)+"-"+p.slice(6,12)+"-"+p.slice(12);return p;}
 
+/* JSONP for the ArcGIS parcel search (address -> parcel + market value). */
 function jsonp(url, cb){
   var fn="__cb"+Math.random().toString(36).slice(2);
   var s=document.createElement("script");
@@ -120,6 +130,71 @@ function jsonp(url, cb){
   document.body.appendChild(s);
 }
 
+/* Fetch the real Tax Collector bill HTML through a CORS proxy, then parse it. */
+function fetchText(url){
+  var proxies=[
+    function(u){return "https://api.allorigins.win/raw?url="+encodeURIComponent(u);},
+    function(u){return "https://corsproxy.io/?url="+encodeURIComponent(u);}
+  ];
+  return new Promise(function(resolve,reject){
+    var i=0;
+    function tryNext(){
+      if(i>=proxies.length){reject(new Error("all proxies failed"));return;}
+      var pu=proxies[i++](url);
+      fetch(pu).then(function(r){if(!r.ok)throw new Error("status "+r.status);return r.text();})
+        .then(function(txt){if(txt&&txt.indexOf("Property Tax Account")>-1)resolve(txt);else tryNext();})
+        .catch(function(){tryNext();});
+    }
+    tryNext();
+  });
+}
+
+function parseBill(html){
+  var doc=new DOMParser().parseFromString(html,"text/html");
+  var tables=[].slice.call(doc.getElementsByTagName("table"));
+  var out={adValorem:null,totalMillage:null,schoolMillage:0,nonAdValorem:null,navItems:[]};
+  function cells(r){return [].slice.call(r.querySelectorAll("td")).map(function(x){return x.textContent.replace(/\s+/g," ").trim();});}
+  tables.forEach(function(t){
+    var head=(t.querySelector("tr")?t.querySelector("tr").textContent:"").toLowerCase();
+    var rows=[].slice.call(t.querySelectorAll("tr"));
+    if(head.indexOf("tax rate")>-1){
+      rows.forEach(function(r){
+        var c=cells(r); if(c.length<3)return;
+        var name=c[0].toUpperCase();
+        if(name==="TOTAL"){var m=parseFloat(c[1]);if(isFinite(m))out.totalMillage=m;out.adValorem=money(c[2]);}
+        else if(name.indexOf("SCHOOL")>-1){var s=parseFloat(c[1]);if(isFinite(s))out.schoolMillage+=s;}
+      });
+    } else if(head.indexOf("authority")>-1 && head.indexOf("charged")>-1 && head.indexOf("tax rate")<0){
+      rows.forEach(function(r){
+        var c=cells(r); if(c.length<2)return;
+        var name=c[0];
+        if(name.toUpperCase()==="TOTAL"){out.nonAdValorem=money(c[1]);}
+        else if(name && name.toLowerCase().indexOf("authority")<0){var a=money(c[1]);if(isFinite(a))out.navItems.push({name:name,amt:a});}
+      });
+    }
+  });
+  if(out.nonAdValorem==null && out.navItems.length){var s=0;out.navItems.forEach(function(x){s+=x.amt;});out.nonAdValorem=r2(s);}
+  return out;
+}
+
+function loadBill(p){
+  var years=BILL_YEARS.slice();
+  return new Promise(function(resolve){
+    function tryYear(){
+      if(!years.length){resolve(null);return;}
+      var y=years.shift();
+      var url="https://polk.floridatax.us/PropertyDetail?p="+dashParcel(p.parcelId)+"&y="+y;
+      fetchText(url).then(function(html){
+        var b=parseBill(html);
+        if(b && b.nonAdValorem!=null && b.totalMillage){b.year=y;b.billUrl=url;resolve(b);}
+        else tryYear();
+      }).catch(function(){tryYear();});
+    }
+    tryYear();
+  });
+}
+
+/* ---------- address parsing ---------- */
 var SUFFIXES={ST:1,STREET:1,AVE:1,AVENUE:1,RD:1,ROAD:1,DR:1,DRIVE:1,LN:1,LANE:1,CT:1,COURT:1,BLVD:1,
   BOULEVARD:1,WAY:1,PL:1,PLACE:1,TER:1,TERRACE:1,CIR:1,CIRCLE:1,TRL:1,TRAIL:1,PKWY:1,PARKWAY:1,HWY:1,HIGHWAY:1,LOOP:1};
 var DIRS={N:1,S:1,E:1,W:1,NE:1,NW:1,SE:1,SW:1};
@@ -144,28 +219,25 @@ function buildWhere(p){
   if(p.city)c.push("UPPER(PROP_CITY) LIKE '%"+p.city.replace(/'/g,"''").toUpperCase()+"%'");
   return c.length?c.join(" AND "):"1=0";
 }
-
 function normalize(a){
   var parts=[a.PROP_ADRNO,(a.PROP_ADRDIR||"").trim(),(a.PROP_ADRSTR||"").trim(),(a.PROP_ADRSUF||"").trim()];
   if((a.PROP_UNITNO||"").trim())parts.push("# "+a.PROP_UNITNO.trim());
   parts=parts.filter(function(x){return x!==""&&x!=null;});
-  var justValue=num(a.TOTALVAL),taxableNow=num(a.TAXVAL),millRate=num(a.MILLRATE),amountDue=num(a.AMTDUE);
-  var currentAdValorem=taxableNow*millRate/1000;
-  var nav=amountDue-currentAdValorem; if(!isFinite(nav)||nav<0)nav=0; nav=Math.round(nav*100)/100;
   return{
     parcelId:a.PARCELID,owner:(a.NAME||"").trim(),
     address:parts.join(" ").replace(/\s+/g," ").trim(),
     city:(a.PROP_CITY||"").trim(),zip:(a.PROP_ZIP||"").trim(),
     useCode:(a.DOR_USE_CODE_DESC||"").trim(),
-    justValue:justValue,currentAssessedValue:num(a.ASSESSVAL),currentTaxableValue:taxableNow,
-    currentMillRate:millRate,schoolMills:SCHOOL_MILLS,currentAmountDue:amountDue,
-    currentAdValorem:r2(currentAdValorem),nonAdValorem:nav,
+    justValue:num(a.TOTALVAL),currentAssessedValue:num(a.ASSESSVAL),currentTaxableValue:num(a.TAXVAL),
+    currentMillRate:num(a.MILLRATE),schoolMills:5.29,
+    nonAdValorem:null,navItems:[],currentAdValorem:null,currentAmountDue:null,billYear:null,billStatus:"loading",
     currentlyHomestead:(a.HMSTD||"").trim().toUpperCase()==="Y",
     currentExemptions:(a.EXDESC||"").trim(),
-    billUrl:"https://www.polktaxes.com/searchpublicrecords.aspx"
+    billUrl:"https://polk.floridatax.us/PropertyDetail?p="+dashParcel(a.PARCELID)+"&y=2025"
   };
 }
 
+/* ---------- tax engine (new buyer) ---------- */
 var RULES={homesteadBasic:25000,homesteadAdditional:25000,homesteadAdditionalFloor:50000,
   seniorAdditional:50000,seniorLongTermJustValueCap:250000,veteranDisabled:5000,disability500:500,blind:500,widow:5000};
 function clampSub(v,e){return Math.max(v-e,0);}
@@ -176,7 +248,7 @@ function estimate(prop,purchasePrice,ex){
   if(ex.veteranTotal||ex.disabilityTotal){
     if(ex.veteranTotal)notes.push("Total & permanent service-connected disability (or surviving spouse): full exemption from ad valorem tax.");
     if(ex.disabilityTotal)notes.push("Total & permanent disability (e.g. quadriplegic, or qualifying income-limited): full exemption from ad valorem tax.");
-    return build(prop,justValue,assessed,schoolMills,nonSchoolMills,0,0,0,notes,["Full exemption"]);
+    return build(prop,assessed,schoolMills,nonSchoolMills,0,0,0,notes,["Full exemption"]);
   }
   var sx=0,nx=0;
   if(ex.homestead){
@@ -187,7 +259,7 @@ function estimate(prop,purchasePrice,ex){
     if(ex.senior&&ex.incomeQualified){
       if(ex.seniorLongTerm&&justValue<RULES.seniorLongTermJustValueCap){nx=assessed;applied.push("Senior long-term residency (full non-school exemption)");}
       else{nx+=RULES.seniorAdditional;applied.push("Senior additional ($"+RULES.seniorAdditional.toLocaleString()+" non-school)");}
-    }else if(ex.senior&&!ex.incomeQualified){notes.push("Senior exemption requires meeting the annual household-income limit; not applied because income eligibility was not confirmed.");}
+    }else if(ex.senior&&!ex.incomeQualified){notes.push("Senior exemption requires meeting the annual household-income limit; not applied.");}
   }else if(ex.senior){notes.push("Senior exemptions require an active Homestead exemption; not applied.");}
   if(ex.veteranDisabled){sx+=RULES.veteranDisabled;nx+=RULES.veteranDisabled;applied.push("Disabled veteran ($5,000)");}
   if(ex.disability500){sx+=RULES.disability500;nx+=RULES.disability500;applied.push("Total/permanent disability ($500)");}
@@ -195,18 +267,19 @@ function estimate(prop,purchasePrice,ex){
   if(ex.widow){sx+=RULES.widow;nx+=RULES.widow;applied.push("Widow/widower ($5,000)");}
   var schoolTaxable=clampSub(assessed,sx),nonSchoolTaxable=clampSub(assessed,nx),combatPct=0;
   if(ex.combatDisabilityPct&&Number(ex.combatDisabilityPct)>0){combatPct=Math.min(Number(ex.combatDisabilityPct),100);applied.push("Combat-related disability discount ("+combatPct+"%)");}
-  return build(prop,justValue,assessed,schoolMills,nonSchoolMills,schoolTaxable,nonSchoolTaxable,combatPct,notes,applied.length?applied:["None"]);
+  return build(prop,assessed,schoolMills,nonSchoolMills,schoolTaxable,nonSchoolTaxable,combatPct,notes,applied.length?applied:["None"]);
 }
-function build(prop,justValue,assessed,schoolMills,nonSchoolMills,schoolTaxable,nonSchoolTaxable,combatPct,notes,applied){
+function build(prop,assessed,schoolMills,nonSchoolMills,schoolTaxable,nonSchoolTaxable,combatPct,notes,applied){
   var adv=schoolTaxable*schoolMills/1000+nonSchoolTaxable*nonSchoolMills/1000;
   if(combatPct>0)adv=adv*(1-combatPct/100);
-  var nav=prop.nonAdValorem;
-  return{justValue:r2(justValue),assessedValue:r2(assessed),schoolMills:schoolMills,nonSchoolMills:Math.round(nonSchoolMills*1000)/1000,
+  var nav=prop.nonAdValorem||0;
+  return{assessedValue:r2(assessed),schoolMills:Math.round(schoolMills*1000)/1000,nonSchoolMills:Math.round(nonSchoolMills*1000)/1000,
     totalMills:Math.round((schoolMills+nonSchoolMills)*1000)/1000,
     schoolTaxableValue:r2(schoolTaxable),nonSchoolTaxableValue:r2(nonSchoolTaxable),
     adValorem:r2(adv),nonAdValorem:r2(nav),totalEstimatedTax:r2(adv+nav),appliedExemptions:applied,notes:notes};
 }
 
+/* ---------- UI ---------- */
 var selected=null, state={};
 var EXDEFS=[
   ["homestead","Homestead","Primary residence. $25k all levies + up to $25k more on non-school."],
@@ -219,8 +292,6 @@ var EXDEFS=[
   ["disability500","Disability ($500)","Total/permanent disability $500 exemption."]
 ];
 
-function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-
 function search(){
   var q=document.getElementById("q").value;
   var p=parseAddress(q), msg=document.getElementById("searchMsg"), list=document.getElementById("resultsList");
@@ -230,7 +301,7 @@ function search(){
   var btn=document.getElementById("searchBtn"); btn.disabled=true; btn.textContent="Searching…";
   var params="?where="+encodeURIComponent(buildWhere(p))+"&outFields="+encodeURIComponent(OUTFIELDS.join(","))
     +"&returnGeometry=false&orderByFields="+encodeURIComponent("PROP_ADRNO")+"&resultRecordCount=25";
-  jsonp(ENDPOINT+params,function(err,data){
+  jsonp(GIS+params,function(err,data){
     btn.disabled=false; btn.textContent="Search";
     if(err){msg.innerHTML='<div class="error">'+esc(err.message)+'</div>';return;}
     if(data.error){msg.innerHTML='<div class="error">'+esc(data.error.message||"County GIS query error.")+'</div>';return;}
@@ -257,6 +328,23 @@ function selectProp(p){
     veteranTotal:false,combatDisabilityPct:"",disability500:false,disabilityTotal:false,blind:false,widow:false,
     purchasePrice:String(p.justValue||"")};
   renderDetail();
+  loadBill(p).then(function(b){
+    if(selected!==p)return;
+    if(b){
+      p.nonAdValorem=b.nonAdValorem; p.navItems=b.navItems||[]; p.currentMillRate=b.totalMillage;
+      if(b.schoolMillage)p.schoolMills=b.schoolMillage;
+      p.currentAdValorem=b.adValorem; p.currentAmountDue=r2((b.adValorem||0)+(b.nonAdValorem||0));
+      p.billYear=b.year; p.billUrl=b.billUrl; p.billStatus="ok";
+    } else { p.billStatus="err"; }
+    renderDetail();
+  });
+}
+
+function kv(k,v){return '<div class="kv"><span class="k">'+esc(k)+'</span><span class="v">'+esc(v)+'</span></div>';}
+
+function navListHtml(items){
+  if(!items||!items.length)return "";
+  return '<ul class="navlist">'+items.map(function(x){return '<li><span class="a">'+esc(x.name)+'</span><span>'+fmt(x.amt)+'</span></li>';}).join("")+'</ul>';
 }
 
 function renderDetail(){
@@ -272,14 +360,32 @@ function renderDetail(){
      +'</div>':"";
   var priceDisplay=state.purchasePrice?Number(String(state.purchasePrice).replace(/[^0-9.]/g,"")).toLocaleString("en-US"):"";
 
+  var srcBadge = p.billStatus==="ok" ? '<span class="src ok">✓ from your '+p.billYear+' Tax Collector bill</span>'
+    : p.billStatus==="loading" ? '<span class="src loading">loading actual bill…</span>'
+    : '<span class="src err">live bill unavailable</span>';
+
+  var navBlock;
+  if(p.billStatus==="ok"){
+    navBlock = kv("Actual non-ad valorem ("+p.billYear+")",fmt(p.nonAdValorem)) + navListHtml(p.navItems);
+  } else if(p.billStatus==="loading"){
+    navBlock = kv("Actual non-ad valorem","loading…");
+  } else {
+    navBlock = kv("Actual non-ad valorem","see bill") +
+      '<p class="notes">Couldn\'t load the live bill. <a href="'+p.billUrl+'" target="_blank" rel="noreferrer">Open the official Tax Collector bill →</a></p>';
+  }
+
+  var current = (p.billStatus==="ok")
+    ? kv("Current ad valorem",fmt(p.currentAdValorem)) + navBlock + kv("Current total bill",fmt(p.currentAmountDue))
+    : navBlock;
+
   d.innerHTML=
    '<div class="card">'
-   +'<h3 class="section-title">'+esc(p.address||"Selected parcel")+'</h3>'
+   +'<h3 class="section-title"><span>'+esc(p.address||"Selected parcel")+'</span>'+srcBadge+'</h3>'
    +kv("Parcel ID",p.parcelId)+kv("Owner of record",p.owner||"—")+kv("Use",p.useCode||"—")
    +kv("Just (market) value",fmt0(p.justValue))+kv("Current assessed (SOH-capped)",fmt0(p.currentAssessedValue))
-   +kv("Current taxable value",fmt0(p.currentTaxableValue))+kv("Current total millage",p.currentMillRate.toFixed(4))
+   +kv("Current total millage",(p.currentMillRate||0).toFixed(4))
    +kv("Current exemptions on file",p.currentExemptions||(p.currentlyHomestead?"Homestead":"None"))
-   +kv("Actual non-ad valorem (this year)",fmt(p.nonAdValorem))+kv("Current owner's total bill",fmt(p.currentAmountDue))
+   +current
    +'</div>'
    +'<div class="card">'
    +'<h3 class="section-title">Your purchase &amp; exemptions</h3>'
@@ -309,8 +415,6 @@ function renderDetail(){
   renderResult();
 }
 
-function kv(k,v){return '<div class="kv"><span class="k">'+esc(k)+'</span><span class="v">'+esc(v)+'</span></div>';}
-
 function renderResult(){
   var p=selected;
   var price=parseFloat(String(state.purchasePrice).replace(/[^0-9.]/g,""))||0;
@@ -318,9 +422,19 @@ function renderResult(){
     seniorLongTerm:state.seniorLongTerm,veteranDisabled:state.veteranDisabled,veteranTotal:state.veteranTotal,
     combatDisabilityPct:parseFloat(state.combatDisabilityPct)||0,disability500:state.disability500,
     disabilityTotal:state.disabilityTotal,blind:state.blind,widow:state.widow});
-  var delta=est.totalEstimatedTax-p.currentAmountDue;
+  var navKnown=p.billStatus==="ok";
+  var compareRight = navKnown ?
+      '<div class="box"><h4>You would pay (est.)</h4><div class="amt">'+fmt(est.totalEstimatedTax)+'</div>'
+      +(p.currentAmountDue?'<div class="delta '+((est.totalEstimatedTax-p.currentAmountDue)>=0?"up":"down")+'">'+((est.totalEstimatedTax-p.currentAmountDue)>=0?"▲ ":"▼ ")+fmt(Math.abs(est.totalEstimatedTax-p.currentAmountDue))+' '+((est.totalEstimatedTax-p.currentAmountDue)>=0?"more":"less")+' per year</div>':"")+'</div>'
+    : '<div class="box"><h4>You would pay (est.)</h4><div class="amt">'+fmt(est.adValorem)+'+</div><div class="delta">ad valorem only — add non-ad valorem from the bill</div></div>';
+  var compareLeft = (navKnown && p.currentAmountDue) ?
+      '<div class="box"><h4>Current owner pays</h4><div class="amt">'+fmt(p.currentAmountDue)+'</div></div>'
+    : '<div class="box"><h4>Current owner pays</h4><div class="amt">'+(p.currentAmountDue?fmt(p.currentAmountDue):"—")+'</div></div>';
   var tags=est.appliedExemptions.map(function(x){return '<span class="tag">'+esc(x)+'</span>';}).join("");
   var notes=est.notes.length?'<ul class="notes">'+est.notes.map(function(n){return '<li>'+esc(n)+'</li>';}).join("")+'</ul>':"";
+  var navLine = navKnown
+    ? '<div class="kv" style="border-bottom:1px dashed #6ee7b7"><span class="k">Non-ad valorem (actual, '+p.billYear+', carried forward)</span><span class="v">'+fmt(est.nonAdValorem)+'</span></div>'
+    : '<div class="kv" style="border-bottom:1px dashed #6ee7b7"><span class="k">Non-ad valorem</span><span class="v">see bill</span></div>';
   document.getElementById("resultCard").innerHTML=
     '<div class="card">'
     +'<h3 class="section-title">Estimated taxes for you (new owner)</h3>'
@@ -329,19 +443,14 @@ function renderResult(){
     +kv("Taxable — school",fmt0(est.schoolTaxableValue))
     +kv("Millage (school "+est.schoolMills+" + non-school "+est.nonSchoolMills+")",est.totalMills)
     +'<div class="totals">'
-     +'<div class="kv" style="border-bottom:1px dashed #6ee7b7"><span class="k">Ad valorem (recalculated)</span><span class="v">'+fmt(est.adValorem)+'</span></div>'
-     +'<div class="kv" style="border-bottom:1px dashed #6ee7b7"><span class="k">Non-ad valorem (actual, from county bill)</span><span class="v">'+fmt(est.nonAdValorem)+'</span></div>'
-     +'<div class="grand"><span class="k">Estimated annual tax</span><span class="v">'+fmt(est.totalEstimatedTax)+'</span></div>'
+     +'<div class="kv" style="border-bottom:1px dashed #6ee7b7"><span class="k">Ad valorem (recalculated for you)</span><span class="v">'+fmt(est.adValorem)+'</span></div>'
+     +navLine
+     +'<div class="grand"><span class="k">Estimated annual tax</span><span class="v">'+(navKnown?fmt(est.totalEstimatedTax):fmt(est.adValorem)+'+')+'</span></div>'
     +'</div>'
-    +'<div class="compare">'
-     +'<div class="box"><h4>Current owner pays</h4><div class="amt">'+fmt(p.currentAmountDue)+'</div></div>'
-     +'<div class="box"><h4>You would pay (est.)</h4><div class="amt">'+fmt(est.totalEstimatedTax)+'</div>'
-      +'<div class="delta '+(delta>=0?"up":"down")+'">'+(delta>=0?"▲ ":"▼ ")+fmt(Math.abs(delta))+' '+(delta>=0?"more":"less")+' per year</div></div>'
-    +'</div>'
+    +'<div class="compare">'+compareLeft+compareRight+'</div>'
     +'<div style="margin-top:14px">'+tags+'</div>'
     +notes
-    +'<p class="notes" style="margin-top:12px">Want the exact, itemized bill (every non-ad valorem line)? '
-      +'<a href="'+p.billUrl+'" target="_blank" rel="noreferrer">Look up this parcel at the Polk County Tax Collector →</a></p>'
+    +'<p class="notes" style="margin-top:12px"><a href="'+p.billUrl+'" target="_blank" rel="noreferrer">View the full official Tax Collector bill →</a></p>'
     +'</div>';
 }
 
